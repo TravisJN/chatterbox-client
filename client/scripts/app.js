@@ -2,7 +2,10 @@
 var currentDate = new Date();
 currentDate = currentDate.toISOString();
 var index=0;
-//currentDate = "2014-03-17T02:36:08.233Z"
+var myUserName;
+var escapeChars = {'&':'&#38', '<':'&#60', '>':'&#62', '"':'&#34', "'":'&#39', '`':'&#96', '!':'&#33', '@':'&#64', '$':'&#36', '%':'&#37', '(':'&#40', ')':'&#41', '=':'&#61', '+':'&#43', '{':'&#123', '}':'&#125', '[':'&#91', ']':'&#93'};
+var currentRoom = "Lobby";
+var friends = {};
 
 var filter = '{"createdAt" : {"$gte" : "' + currentDate + '"}}';
 var app = {
@@ -53,13 +56,10 @@ var result = $.ajax({
 	    console.log('chatterbox: Message received');
 	    currentDate = new Date();
 	    currentDate=currentDate.toISOString();
-	    console.log(currentDate);
 	    filter = '{"createdAt" : {"$gte" : "' + currentDate + '"}}';
 	    console.log("now we have these results", data.results);
 	    app.updateMessages(data.results);
 	    index=data.results.length;
-
-
 	  },
 	  error: function (data) {
 	    // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -72,28 +72,59 @@ app.clearMessages = function(){
 	$('#chats').children().remove();
 }
 
+app.escapeCharacters = function(message){
+
+	//message.text = JSON.stringify(message.text);
+	//console.log(message.text.length);
+	if (!message.text){
+		message.text="";
+	}
+	var message_arr=message.text.split('') || [];
+	for (var i = 0; i < message_arr.length; i++){
+		if (escapeChars[message_arr[i]]){
+			message_arr[i] = escapeChars[message_arr[i]];
+		}
+	}
+	message.text=message_arr.join('');
+	console.log(message.text);
+  return message;
+}
+
 app.addMessage = function(message){
-	$('#chats').append('<div class="chat"></div>');
-	$('#chats').children().last().append('<div class="username">'+ message.username +'</div>');
-	$('#chats').children().last().append('<div class="message">'+ message.text +'</div>');
+	message = app.escapeCharacters(message);
+  if (message.roomname === currentRoom || currentRoom === "Lobby"){	
+		$('#chats').prepend('<div class="chat ' + message.roomname + '"></div>').hide().slideToggle();
+		$('#chats').children().first().append('<div class="username ' + message.username +'">'+ message.username +'</div>');
+		$('#chats').children().first().append('<div class="message">'+ message.text +'</div>');
+  	//$('#chats').children().fadeIn();
+  }
+  
+	if(friends[message.username]){
+		$('#chats').find('.' + message.username).addClass("friend");
+	}
+	
 }
 
 app.addRoom = function(roomName){
-	$('#roomSelect').append('<a href="#" class="room">' + roomName + '</a>');	
+
+	$('#roomSelect').append('<option value="' + roomName + '">' + roomName + '</option>');	
+	currentRoom = roomName;
+	$('#roomSelect').val(roomName);
+	console.log('current room', roomName);
 }
 
-app.addFriend = function() {
-	console.log("click");
+app.addFriend = function(user) {
+	friends[user] = user;
+	$('#chats').find('.' + user).addClass('friend');
 }
 
 app.handleSubmit = function(messageText){
 	$('#messageBox').val('');
 	var userNameIndex=window.location.search.indexOf("username=");
 	userNameIndex+=9; // offset pass username=
-	var username=window.location.search.substr(userNameIndex);
-	var roomname="main";
+  myUserName = window.location.search.substr(userNameIndex);
 
-	var message = new Message(username, messageText, roomname);
+	var message = new Message(myUserName, messageText, currentRoom);
 	app.send(message);
 	app.addMessage(message);
 }
@@ -101,13 +132,24 @@ app.handleSubmit = function(messageText){
 app.updateMessages = function(data) {
   for (var i = index; i < data.length; i++){
 	  var message = new Message(data[i].username, data[i].text, data[i].roomname);
-	  app.addMessage(message);
+	  if (message.username !== myUserName){
+	  	app.addMessage(message);
+	  }
   }
+}
+
+app.changeRoom = function(roomName){
+	$('#chats').find('.chat').addClass('invisible');
+			$('#chats').find('.' + currentRoom).removeClass('invisible');
+		if(currentRoom === 'Lobby'){
+			$('#chats').find('.chat').removeClass('invisible');
+		}
 }
 
 $(document).ready(function(){
 	$('#main').on('click', '.username', function(event){
-		app.addFriend();
+		var user = $(this).text();
+		app.addFriend(user);
 	});
 
 	$('form').submit(function(event){
@@ -117,6 +159,17 @@ $(document).ready(function(){
 		var messageText = $(this).children('#messageBox').val();
 		app.handleSubmit(messageText);
 	});
+
+	$('button').click('#addRoom', function(event){
+		var newRoomName = prompt("Enter room name:");
+		app.addRoom(newRoomName);
+		app.changeRoom(newRoomName);
+	});
+
+	$('#roomSelect').change(function(event){
+		currentRoom = $(this).val();
+		app.changeRoom(currentRoom);
+	})
 });
 app.init();
 // app.send(message);

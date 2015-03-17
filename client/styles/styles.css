@@ -68,6 +68,7 @@ form input[type=text] {
     padding: 5px;
     margin-bottom: 5px;
     background-color: #eee;
+    border-radius : 14px;
 }
 
 .chat .username {
@@ -86,4 +87,16 @@ form input[type=text] {
 
 .spinner img {
     padding: 10px;
+}
+
+.friend {
+    color: red;
+}
+
+.visible {
+    visibility : visible;
+}
+
+.invisible {
+    display : none;
 }

@@ -12,13 +12,19 @@
   <body>
     <div id="main">
       <h1>chatterbox</h1>
-      <div id="roomSelect">Rooms</div>
+      <div id="roomSelectContainer">Rooms:
+      <select id="roomSelect">
+        <option value="Lobby">Lobby</option>
+      </select>
+      <button id="addRoom">Add Room</button>
+      </div>
+
       <!-- Your HTML goes here! -->
-      <div id="chats"></div>
       <form> 
         <input type="text" name="submitForm" id="messageBox">
         <input type="submit" value="send" class="submit" id="send">
       </form>
+      <div id="chats"></div>
     </div>
   </body>
     <script src="env/config.js"></script>
