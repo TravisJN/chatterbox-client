@@ -20,10 +20,15 @@ body {
     font-size: 35px;
     margin-bottom: 5px;
     padding: 5px;
+    display : inline;
 }
 
 #main h1 span {
     font-style:italic;
+}
+
+#roomSelect {
+    display : inline;
 }
 
 #main ul {
