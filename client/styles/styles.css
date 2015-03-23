@@ -100,3 +100,8 @@ form input[type=text] {
 .invisible {
     display : none;
 }
+
+.message {
+    padding : 5px;
+
+}
